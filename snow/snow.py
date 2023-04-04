@@ -50,13 +50,13 @@ def solve_snow(temp, precip, doy, swe, melt, rain_snow, rs_thresh, snow_thresh_m
             ppt_phase = 0
         else:
             ppt_phase = 1
-        elif rain_snow == 2:
-            if temp <= snow_thresh_max:
-                ppt_phase = 0
-            elif temp >= rain_thresh_min:
-                ppt_phase = 1
-            else:
-                ppt_phase = (temp - snow_thresh_max) / (rain_thresh_min - snow_thresh_max)
+    elif rain_snow == 2:
+        if temp <= snow_thresh_max:
+            ppt_phase = 0
+        elif temp >= rain_thresh_min:
+            ppt_phase = 1
+        else:
+            ppt_phase = (temp - snow_thresh_max) / (rain_thresh_min - snow_thresh_max)
     else:
         raise RuntimeError("Invalid rain-snow partitioning method")
 
