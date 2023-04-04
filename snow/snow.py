@@ -2,34 +2,47 @@
 
 import numpy as np
 import yaml
-from scipy import ndimage
 
-
-def solve_snow(temp, precip, swe, melt, rain_snow, alpha=1.0, time_step=1.0):
-    """Solve the 2D Heat Equation on a uniform mesh.
+def solve_snow(temp, precip, doy, swe, melt, rain_snow, rs_thresh, snow_thresh_max, rain_thresh_min,
+               ddf_max, ddf_min, tair_melt_thresh):
+    """Run the snow model for one time step to update the states and fluxes.
 
     Parameters
     ----------
-    temp : ndarray
-        Temperature.
-    spacing : array_like
-        Grid spacing in the row and column directions.
-    out : ndarray (optional)
-        Output array.
-    alpha : float (optional)
-        Thermal diffusivity.
-    time_step : float (optional)
-        Time step.
+    temp : float
+        Air temperature (input from forcing data).
+    precip : float
+        Precipitation (input from forcing data).
+    doy : int
+        Day of year (input from forcing data).
+    swe: float
+        Snow water equivalent (state that gets updated).
+    melt: float
+        Snowmelt (flux that gets updated).
+    rain_snow: int
+        Rain-snow partitioning method (parameter).
+    rs_thresh: float
+        Rain-snow air temperature threshold (parameter, for rain_snow == 1).
+    snow_thresh_max: float
+        Maximum air temperature threshold for snow (parameter, for rain_snow == 2).
+    rain_thresh_min: float
+        Minimum air temperature threshold for rain (parameter, for rain_snow == 2).
+    ddf_max: float
+        Maximum annual degree day factor (parameter).
+    ddf_min: float
+        Minimum annual degree day factor (parameter).
 
     Returns
     -------
+    TODO
     result : ndarray
         The temperatures after time *time_step*.
 
     Examples
     --------
-
+    TODO
     """
+
     # Assign precipitation phase
     # 0 = snow, 1 = rain
     if rain_snow == 1:
@@ -52,7 +65,7 @@ def solve_snow(temp, precip, swe, melt, rain_snow, alpha=1.0, time_step=1.0):
     rainfall_mm = precip - snowfall_mm
 
     # Compute degree day factor
-    ddf = ((ddf_max + ddf_min) / 2) + (sin((yday(date) - 81) / 58.09) * ((ddf_max - ddf_min) / 2))
+    ddf = ((ddf_max + ddf_min) / 2) + (sin((doy - 81) / 58.09) * ((ddf_max - ddf_min) / 2))
 
     # Compute potential melt
     if temp > tair_melt_thresh:
@@ -63,40 +76,22 @@ def solve_snow(temp, precip, swe, melt, rain_snow, alpha=1.0, time_step=1.0):
     # Compute SWE taking snowfall and melt into account
     swe = max(0, swe + snowfall_mm - melt_pot_mm)
 
-
-return np.add(temp, out, out=out)
+    #TODO
+    #return np.add(temp, out, out=out)
 
 
 class Snow(object):
-
-    """Solve the Heat equation on a grid.
+    """Snow model class.
 
     Examples
     --------
-    >>> heat = Snow()
-    >>> heat.time
-    0.0
-    >>> heat.time_step
-    0.25
-    >>> heat.advance_in_time()
-    >>> heat.time
-    0.25
+    TODO
 
-    >>> heat = Snow(shape=(5, 5))
-    >>> heat.temperature = np.zeros_like(heat.temperature)
-    >>> heat.temperature[2, 2] = 1.
-    >>> heat.advance_in_time()
-
-    >>> heat = Snow(alpha=.5)
-    >>> heat.time_step
-    0.5
-    >>> heat = Snow(alpha=.5, spacing=(2., 3.))
-    >>> heat.time_step
-    2.0
     """
 
     def __init__(
-        self, shape=(10, 20), spacing=(1.0, 1.0), origin=(0.0, 0.0), alpha=1.0
+        self, rs_method=1, rs_thresh=2.5, snow_thresh_max=1.5, rain_thresh_min=4.5,
+            ddf_max=1, ddf_min=0, tair_melt_thresh=1,swe_init=0, dayofyear=274,
     ):
         """Create a new heat model.
 
@@ -108,18 +103,65 @@ class Snow(object):
             Spacing of grid rows and columns.
         origin : array_like, optional
             Coordinates of lower left corner of grid.
-        alpha : float
+        swe_init : float
             Alpha parameter in the heat equation.
+            :param rs_method:
+            :param rs_thresh:
+            :param snow_thresh_max:
+            :param rain_thresh_min:
+            :param ddf_max:
+            :param ddf_min:
+            :param tair_melt_thresh:
         """
-        self._shape = shape
-        self._spacing = spacing
-        self._origin = origin
-        self._time = 0.0
-        self._alpha = alpha
-        self._time_step = min(spacing) ** 2 / (4.0 * self._alpha)
+        self._rs_method = rs_method
+        self._rs_thresh = rs_thresh
+        self._snow_thresh_max = snow_thresh_max
+        self._rain_thresh_min = rain_thresh_min
+        self._ddf_max = ddf_max
+        self._ddf_min = ddf_min
+        self._tair_melt_thresh = tair_melt_thresh
 
-        self._temperature = np.random.random(self._shape)
-        self._next_temperature = np.empty_like(self._temperature)
+        self._time = 0.0
+        self._time_step = 86400
+        self._dayofyear = dayofyear
+
+        self._tair_c = 0
+        self._ppt_mm = 0
+        self._swe_mm = swe_init
+        self._melt_mm = 0
+
+    @property
+    def rs_method(self):
+        """Rain-snow partitioning method."""
+        return self._rs_method
+
+    @property
+    def rs_thresh(self):
+        """Rain-snow air temperature threshold when rs_method = 1."""
+        return self._rs_thresh
+
+    @property
+    def snow_thresh_max(self):
+        """Maximum snow air temperature threshold when rs_method = 2."""
+        return self._snow_thresh_max
+
+    @property
+    def rain_thresh_min(self):
+        """Maximum rain air temperature threshold when rs_method = 2."""
+        return self._rain_thresh_min
+
+    @property
+    def ddf_max(self):
+        """Maximum annual degree day factor."""
+        return self._ddf_max
+
+    def ddf_min(self):
+        """Minimum annual degree day factor."""
+        return self._ddf_min
+
+    def tair_melt_thresh(self):
+        """Minimum annual degree day factor."""
+        return self._tair_melt_thresh
 
     @property
     def time(self):
@@ -127,45 +169,59 @@ class Snow(object):
         return self._time
 
     @property
-    def temperature(self):
-        """Temperature of the plate."""
-        return self._temperature
-
-    @temperature.setter
-    def temperature(self, new_temp):
-        """Set the temperature of the plate.
-
-        Parameters
-        ----------
-        new_temp : array_like
-            The new temperatures.
-        """
-        self._temperature[:] = new_temp
-
-    @property
     def time_step(self):
         """Model time step."""
         return self._time_step
 
-    @time_step.setter
-    def time_step(self, time_step):
-        """Set model time step."""
-        self._time_step = time_step
+    @property
+    def dayofyear(self):
+        """Current model day of year."""
+        return self._dayofyear
+
+    @dayofyear.setter
+    def dayofyear(self, dayofyear):
+        """Set model day of year."""
+        self._dayofyear = dayofyear
 
     @property
-    def shape(self):
-        """Shape of the model grid."""
-        return self._shape
+    def tair_c(self):
+        """Current air temperature."""
+        return self._tair_c
+
+    @tair_c.setter
+    def tair_c(self, tair_c):
+        """Set air temperature."""
+        self._tair_c = tair_c
 
     @property
-    def spacing(self):
-        """Spacing between nodes of the model grid."""
-        return self._spacing
+    def ppt_mm(self):
+        """Current precipitation."""
+        return self._ppt_mm
+
+    @ppt_mm.setter
+    def ppt_mm(self, ppt_mm):
+        """Set precipitation."""
+        self._ppt_mm = ppt_mm
 
     @property
-    def origin(self):
-        """Origin coordinates of the model grid."""
-        return self._origin
+    def swe_mm(self):
+        """Current snow water equivalent."""
+        return self._swe_mm
+
+    @swe_mm.setter
+    def swe_mm(self, swe_mm):
+        """Set swe."""
+        self._swe_mm = swe_mm
+
+    @property
+    def melt_mm(self):
+        """Current snowmelt."""
+        return self._melt_mm
+
+    @melt_mm.setter
+    def melt_mm(self, melt_mm):
+        """Set melt."""
+        self._melt_mm = melt_mm
 
     @classmethod
     def from_file_like(cls, file_like):
@@ -189,11 +245,17 @@ class Snow(object):
         solve_snow(
             self._tair_c,
             self._ppt_mm,
+            self._dayofyear,
             self._swe_mm,
-            self._melt_mm
-            alpha=self._alpha,
-            time_step=self._time_step,
+            self._melt_mm,
+            self._rs_method,
+            self._rs_thresh,
+            self._snow_thresh_max,
+            self._rain_thresh_min,
+            self._ddf_max,
+            self._ddf_min,
+            self._tair_melt_thresh,
         )
-        np.copyto(self._temperature, self._next_temperature)
 
         self._time += self._time_step
+        self._dayofyear += 1
