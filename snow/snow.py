@@ -91,7 +91,7 @@ class Snow(object):
 
     def __init__(
         self, rs_method=1, rs_thresh=2.5, snow_thresh_max=1.5, rain_thresh_min=4.5,
-            ddf_max=1, ddf_min=0, tair_melt_thresh=1,swe_init=0, dayofyear=274,
+            ddf_max=1, ddf_min=0, tair_melt_thresh=1, swe_init=0, dayofyear=274,
     ):
         """Create a new heat model.
 
@@ -125,10 +125,13 @@ class Snow(object):
         self._time_step = 86400
         self._dayofyear = dayofyear
 
-        self._tair_c = 0
-        self._ppt_mm = 0
-        self._swe_mm = swe_init
-        self._melt_mm = 0
+        self._tair_c = np.zeros(1, dtype=float)
+        self._ppt_mm = np.zeros(1, dtype=float)
+        self._swe_mm = np.zeros(1, dtype=float)
+        swe_tmp = np.zeros(1, dtype=float)
+        swe_tmp[0,] = swe_init
+        self._swe_mm = swe_tmp
+        self._melt_mm = np.zeros(1, dtype=float)
 
     @property
     def rs_method(self):
@@ -189,9 +192,9 @@ class Snow(object):
         return self._tair_c
 
     @tair_c.setter
-    def tair_c(self, tair_c):
+    def tair_c(self, new_tair_c):
         """Set air temperature."""
-        self._tair_c = tair_c
+        self._tair_c[:] = new_tair_c
 
     @property
     def ppt_mm(self):

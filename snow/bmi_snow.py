@@ -254,8 +254,7 @@ class SnowBmi(Bmi):
         src : array_like
             Array of new values.
         """
-        val = self.get_value_ptr(var_name)
-        val[:] = src.reshape(val.shape)
+        self._values[var_name] = src
 
     def set_value_at_indices(self, name, inds, src):
         """Set model values at particular indices.
