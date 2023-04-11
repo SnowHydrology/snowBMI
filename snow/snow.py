@@ -41,6 +41,7 @@ def solve_snow(temp, precip, doy, swe, melt, rain_snow, rs_thresh, snow_thresh_m
     Examples
     --------
     TODO
+    :param out:
     """
 
     # Assign precipitation phase
@@ -64,26 +65,34 @@ def solve_snow(temp, precip, doy, swe, melt, rain_snow, rs_thresh, snow_thresh_m
     snowfall_mm = (1 - ppt_phase) * precip
     rainfall_mm = precip - snowfall_mm
 
-    # Compute degree day factor
+    # Add new snowfall to swe
+    np.add(swe, snowfall_mm, out=swe)
+
+    # Compute degree day factor for melt calcs
     ddf = ((ddf_max + ddf_min) / 2) + (np.sin((doy - 81) / 58.09) * ((ddf_max - ddf_min) / 2))
 
     # Compute potential melt
     if temp > tair_melt_thresh:
-        melt_pot_mm = (tair_c - tair_melt_thresh) * ddf
+        melt_pot_mm = (temp - tair_melt_thresh) * ddf
     else:
         melt_pot_mm = 0
 
-    # Compute SWE taking snowfall and melt into account
-    swe = max(0, swe + snowfall_mm - melt_pot_mm)
+    # Compute total melt knowing melt can't exceed SWE
+    melt = min(swe, melt_pot_mm)
+
+    # Compute SWE taking melt into account
+    swe = np.subtract(swe, melt, swe)
+
     print("swe in model = ", swe)
     print("precip in model =", precip)
     print("snowfall in model =", snowfall_mm)
     print("air temp in model =", temp)
     print("rs_method in model =", rain_snow)
 
-    #TODO
-    #return np.add(temp, out, out=out)
+    #out = np.full(1, swe)
+    #print("swe out =", out)
 
+    return swe
 
 class Snow(object):
     """Snow model class.
@@ -136,6 +145,7 @@ class Snow(object):
         swe_tmp = np.zeros(1, dtype=float)
         swe_tmp[0,] = swe_init
         self._swe_mm = swe_tmp
+        self._swe_mm_out = np.empty_like(self._swe_mm)
         self._melt_mm = np.zeros(1, dtype=float)
 
     @property
@@ -263,7 +273,10 @@ class Snow(object):
             self._ddf_max,
             self._ddf_min,
             self._tair_melt_thresh,
+            #out=self._swe_mm_out
         )
-
+        #print("self._swe_mm_out =", self._swe_mm_out)
+        #np.copyto(self._swe_mm, self._swe_mm_out)
         self._time += self._time_step
         self._dayofyear += 1
+
