@@ -65,7 +65,7 @@ def solve_snow(temp, precip, doy, swe, melt, rain_snow, rs_thresh, snow_thresh_m
     rainfall_mm = precip - snowfall_mm
 
     # Compute degree day factor
-    ddf = ((ddf_max + ddf_min) / 2) + (sin((doy - 81) / 58.09) * ((ddf_max - ddf_min) / 2))
+    ddf = ((ddf_max + ddf_min) / 2) + (np.sin((doy - 81) / 58.09) * ((ddf_max - ddf_min) / 2))
 
     # Compute potential melt
     if temp > tair_melt_thresh:
@@ -75,6 +75,11 @@ def solve_snow(temp, precip, doy, swe, melt, rain_snow, rs_thresh, snow_thresh_m
 
     # Compute SWE taking snowfall and melt into account
     swe = max(0, swe + snowfall_mm - melt_pot_mm)
+    print("swe in model = ", swe)
+    print("precip in model =", precip)
+    print("snowfall in model =", snowfall_mm)
+    print("air temp in model =", temp)
+    print("rs_method in model =", rain_snow)
 
     #TODO
     #return np.add(temp, out, out=out)
@@ -204,7 +209,7 @@ class Snow(object):
     @ppt_mm.setter
     def ppt_mm(self, ppt_mm):
         """Set precipitation."""
-        self._ppt_mm = ppt_mm
+        self._ppt_mm[:] = ppt_mm
 
     @property
     def swe_mm(self):
@@ -214,7 +219,7 @@ class Snow(object):
     @swe_mm.setter
     def swe_mm(self, swe_mm):
         """Set swe."""
-        self._swe_mm = swe_mm
+        self._swe_mm[:] = swe_mm
 
     @property
     def melt_mm(self):
@@ -224,7 +229,7 @@ class Snow(object):
     @melt_mm.setter
     def melt_mm(self, melt_mm):
         """Set melt."""
-        self._melt_mm = melt_mm
+        self._melt_mm[:] = melt_mm
 
     @classmethod
     def from_file_like(cls, file_like):
