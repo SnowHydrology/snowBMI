@@ -14,7 +14,7 @@ def solve_snow(temp, precip, doy, swe, melt, rain_snow, rs_thresh, snow_thresh_m
     precip : float
         Precipitation (input from forcing data).
     doy : int
-        Day of year (input from forcing data).
+        Day of year (incremented from model start)
     swe: float
         Snow water equivalent (state that gets updated).
     melt: float
@@ -31,6 +31,8 @@ def solve_snow(temp, precip, doy, swe, melt, rain_snow, rs_thresh, snow_thresh_m
         Maximum annual degree day factor (parameter).
     ddf_min: float
         Minimum annual degree day factor (parameter).
+    tair_melt_thresh: float
+        Air temperature threshold above which snowmelt can occur (parameter).
 
     Returns
     -------
@@ -83,15 +85,6 @@ def solve_snow(temp, precip, doy, swe, melt, rain_snow, rs_thresh, snow_thresh_m
     # Compute SWE taking melt into account
     swe = np.subtract(swe, melt, swe)
 
-    print("swe in model = ", swe)
-    print("precip in model =", precip)
-    print("snowfall in model =", snowfall_mm)
-    print("air temp in model =", temp)
-    print("rs_method in model =", rain_snow)
-
-    #out = np.full(1, swe)
-    #print("swe out =", out)
-
     return swe
 
 class Snow(object):
@@ -105,18 +98,12 @@ class Snow(object):
 
     def __init__(
         self, rs_method=1, rs_thresh=2.5, snow_thresh_max=1.5, rain_thresh_min=4.5,
-            ddf_max=1, ddf_min=0, tair_melt_thresh=1, swe_init=0, dayofyear=274,
+            ddf_max=1, ddf_min=0, tair_melt_thresh=1, swe_init=0, dayofyear=274, year=2016,
     ):
         """Create a new heat model.
 
         Parameters
         ---------
-        shape : array_like, optional
-            The shape of the solution grid as (*rows*, *columns*).
-        spacing : array_like, optional
-            Spacing of grid rows and columns.
-        origin : array_like, optional
-            Coordinates of lower left corner of grid.
         swe_init : float
             Alpha parameter in the heat equation.
             :param rs_method:
@@ -138,6 +125,7 @@ class Snow(object):
         self._time = 0.0
         self._time_step = 86400
         self._dayofyear = dayofyear
+        self._year = year
 
         self._tair_c = np.zeros(1, dtype=float)
         self._ppt_mm = np.zeros(1, dtype=float)
@@ -145,7 +133,6 @@ class Snow(object):
         swe_tmp = np.zeros(1, dtype=float)
         swe_tmp[0,] = swe_init
         self._swe_mm = swe_tmp
-        self._swe_mm_out = np.empty_like(self._swe_mm)
         self._melt_mm = np.zeros(1, dtype=float)
 
     @property
@@ -200,6 +187,16 @@ class Snow(object):
     def dayofyear(self, dayofyear):
         """Set model day of year."""
         self._dayofyear = dayofyear
+
+    @property
+    def year(self):
+        """Current model year."""
+        return self._year
+
+    @year.setter
+    def year(self, year):
+        """Set model year."""
+        self._year = year
 
     @property
     def tair_c(self):
@@ -273,10 +270,19 @@ class Snow(object):
             self._ddf_max,
             self._ddf_min,
             self._tair_melt_thresh,
-            #out=self._swe_mm_out
         )
-        #print("self._swe_mm_out =", self._swe_mm_out)
-        #np.copyto(self._swe_mm, self._swe_mm_out)
+
         self._time += self._time_step
-        self._dayofyear += 1
+        if self._dayofyear == 365:    # check if day of year == 365
+            if self._year % 4 != 0:   # if not leap year then increment to next year
+                self._dayofyear = 1
+                self._year += 1
+            else:                     # otherwise (ie, it's a leap year) add 1 day
+                self._dayofyear += 1
+        elif self._dayofyear == 366:  # check if end of a leap year and increment to next year
+            self._dayofyear = 1
+            self._year += 1
+        else:                         # otherwise add one day to clock
+            self._dayofyear += 1
+
 
