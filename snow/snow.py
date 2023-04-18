@@ -80,12 +80,12 @@ def solve_snow(temp, precip, doy, swe, melt, rain_snow, rs_thresh, snow_thresh_m
         melt_pot_mm = 0
 
     # Compute total melt knowing melt can't exceed SWE
-    melt = min(swe, melt_pot_mm)
+    melt = np.add(0, min(swe, melt_pot_mm), out=melt)
 
     # Compute SWE taking melt into account
     swe = np.subtract(swe, melt, swe)
 
-    return swe
+    return swe, melt
 
 class Snow(object):
     """Snow model class.
