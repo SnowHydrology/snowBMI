@@ -50,10 +50,10 @@ class SnowBmi(Bmi):
                         "land_surface_air__temperature": self._model.tair_c,
                         "snowpack__liquid-equivalent_depth": self._model.swe_mm,
                         "snowpack__melt_volume_flux": self._model.melt_mm}
-        self._var_units = {"atmosphere_water__precipitation_leq-volume_flux": "mm h-1",
+        self._var_units = {"atmosphere_water__precipitation_leq-volume_flux": "mm d-1",
                            "land_surface_air__temperature": "C",
                            "snowpack__liquid-equivalent_depth": "mm",
-                           "snowpack__melt_volume_flux": "mm h-1"}
+                           "snowpack__melt_volume_flux": "mm d-1"}
         self._grid_type = {0: "scalar"}
 
     def update(self):
