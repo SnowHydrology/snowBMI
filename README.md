@@ -30,6 +30,8 @@ This model comes with an example Jupyter Notebook so you can see how the BMI fun
 
 `examples/run-model-from-bmi.ipynb`
 
+To note, the example comes with its own SNOTEL forcing data, but you can create your own using the R code in `tools`.
+
 ## Known issues
 
 This is but a simple model that makes several assumptions. They are:
