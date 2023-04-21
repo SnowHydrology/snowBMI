@@ -1,67 +1,60 @@
 # snowBMI
 
-**Description**:  This simple, temperature index snow model includes an implementation of the Basic Model Interface (BMI). It's meant for demonstration purposes, but feel free to use it however you like. I'd recommend it mostly for snow modeling, but you do you.
+**Description**:  This simple, temperature index snow model includes an implementation of the [Basic Model Interface](https://csdms.colorado.edu/wiki/BMI) (BMI). It's meant for demonstration purposes, but feel free to use it however you like. I'd recommend it mostly for snow modeling, but you do you.
 
-BMI is developed by the CSDMS group at CU Boulder. Much of the code here is from their heat example. I also used bits of inspiration from jinjabmi.
+BMI is developed by the [CSDMS](https://csdms.colorado.edu/wiki/Main_Page) group at CU Boulder. Much of the BMI code here is from their [heat](https://github.com/csdms/bmi-example-python) example. 
 
 ## Dependencies
 
-Describe any dependencies that must be installed for this software to work.
-This includes programming languages, databases or other storage mechanisms, build tools, frameworks, and so forth.
-If specific versions of other software are required, or known not to work, call that out.
+This is a simple bit of Python code developed with Python 3.9. The `snowBMI` module requires:
+
+* The [BMI Python bindings](https://github.com/csdms/bmi-python) from CSDMS
+* `numpy`
+* `yaml`
+
+The example also requires:
+
+* [Jupyter Notebook](https://jupyter.org/)
+* `pandas`
+* `Matplotlib`
 
 ## Installation
 
-Detailed instructions on how to install, configure, and get the project running.
-This should be frequently tested to ensure reliability. Alternatively, link to
-a separate [INSTALL](INSTALL.md) document.
+First install the BMI Python bindings using the CSDMS instructions. Next, build the model by going to the main level of the `snowBMI` directory and running:
 
-## Configuration
-
-If the software is configurable, describe it in detail, either here or in other documentation to which you link.
+`pip install -e .`
 
 ## Usage
 
-Show users how to use the software.
-Be specific.
-Use appropriate formatting when showing code snippets.
+This model comes with an example Jupyter Notebook so you can see how the BMI functions work to control model execution and the handling of data.
 
-## How to test the software
-
-If the software includes automated tests, detail how to run those tests.
+`examples/run-model-from-bmi.ipynb`
 
 ## Known issues
 
-Document any known significant shortcomings with the software.
+This is but a simple model that makes several assumptions. They are:
 
-## Getting help
+* Snow hydrology is ignored (if melt is produced then it immediately disappears from the snowpack)
+* Rainfall is added to snowmelt so that the melt term represents a land surface water flux
+* The model is configured for a daily timestep
+* Date handling is only done by a day of year tracker in the code (i.e., there is no explicit handling of POSIX-formatted datetimes)
 
-Instruct users how to get help with this software; this might include links to an issue tracker, wiki, mailing list, etc.
+## Reporting issues, getting help
 
-**Example**
-
-If you have questions, concerns, bug reports, etc, please file an issue in this repository's Issue Tracker.
-
-## Getting involved
-
-This section should detail why people should get involved and describe key areas you are
-currently focusing on; e.g., trying to get feedback on features, fixing certain bugs, building
-important pieces, etc.
-
-General instructions on _how_ to contribute should be stated with a link to [CONTRIBUTING](CONTRIBUTING.md).
-
-
-----
+If you see any bugs, errors, etc., please use this repo's Issue Tracker. You can also make any requests for help there.
 
 ## Open source licensing info
-1. [TERMS](TERMS.md)
-2. [LICENSE](LICENSE)
-
+[LICENSE](LICENSE)
 
 ----
 
 ## Credits and references
 
-1. Projects that inspired you
-2. Related projects
-3. Books, papers, talks, or other sources that have meaningful impact or influence on this project
+1. [BMI](https://csdms.colorado.edu/wiki/BMI) from CSDMS
+2. The BMI Python [heat](https://github.com/csdms/bmi-example-python) example
+3. Temperature index snow models like Snow-17 and the equations in DeWalle and Rango (2008)
+    - _Anderson, E. A. "Snow accumulation and ablation model–SNOW-17." US National Weather Service, Silver Spring, MD 61 (2006)._
+    - _DeWalle, David R., and Albert Rango. Principles of Snow Hydrology. Cambridge University Press, 2008._
+4. The Next Generation Water Prediction Capability project at the NOAA-NWS Office of Water Prediction
+   - GitHub repo for the [NextGen Framework](https://github.com/NOAA-OWP/ngen)
+   - BMI implementation of the [LSTM](https://github.com/NOAA-OWP/lstm/) machine learning model
