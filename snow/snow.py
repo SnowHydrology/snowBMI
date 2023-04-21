@@ -85,6 +85,10 @@ def solve_snow(temp, precip, doy, swe, melt, rain_snow, rs_thresh, snow_thresh_m
     # Compute SWE taking melt into account
     swe = np.subtract(swe, melt, swe)
 
+    # Add rainfall to melt
+    # Yes, rainfall != melt, but this simple model assumes all rain is a land surface water flux
+    melt = np.add(melt, rainfall_mm, out=melt)
+
     return swe, melt
 
 class Snow(object):
