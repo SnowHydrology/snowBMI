@@ -254,7 +254,6 @@ class SnowBmi(Bmi):
         src : array_like
             Array of new values.
         """
-        #self._values[var_name] = src # <-- does not work with this implementation
         val = self.get_value_ptr(var_name)
         val[:] = src.reshape(val.shape)
 
@@ -263,11 +262,11 @@ class SnowBmi(Bmi):
 
         Parameters
         ----------
-        var_name : str
+        name : str
             Name of variable as CSDMS Standard Name.
         src : array_like
             Array of new values.
-        indices : array_like
+        inds : array_like
             Array of indices.
         """
         val = self.get_value_ptr(name)

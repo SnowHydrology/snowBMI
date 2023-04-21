@@ -3,22 +3,23 @@
 import numpy as np
 import yaml
 
+
 def solve_snow(temp, precip, doy, swe, melt, rain_snow, rs_thresh, snow_thresh_max, rain_thresh_min,
                ddf_max, ddf_min, tair_melt_thresh):
     """Run the snow model for one time step to update the states and fluxes.
 
     Parameters
     ----------
-    temp : float
+    temp : ndarray
         Air temperature (input from forcing data).
-    precip : float
+    precip : ndarray
         Precipitation (input from forcing data).
     doy : int
         Day of year (incremented from model start)
-    swe: float
+    swe: ndarray
         Snow water equivalent (state that gets updated).
-    melt: float
-        Snowmelt (flux that gets updated).
+    melt: ndarray
+        Snowmelt + rainfall per time step (flux that gets updated).
     rain_snow: int
         Rain-snow partitioning method (parameter).
     rs_thresh: float
@@ -43,7 +44,6 @@ def solve_snow(temp, precip, doy, swe, melt, rain_snow, rs_thresh, snow_thresh_m
     Examples
     --------
     TODO
-    :param out:
     """
 
     # Assign precipitation phase
@@ -91,6 +91,7 @@ def solve_snow(temp, precip, doy, swe, melt, rain_snow, rs_thresh, snow_thresh_m
 
     return swe, melt
 
+
 class Snow(object):
     """Snow model class.
 
@@ -135,7 +136,7 @@ class Snow(object):
         self._ppt_mm = np.zeros(1, dtype=float)
         self._swe_mm = np.zeros(1, dtype=float)
         swe_tmp = np.zeros(1, dtype=float)
-        swe_tmp[0,] = swe_init
+        swe_tmp[0, ] = swe_init
         self._swe_mm = swe_tmp
         self._melt_mm = np.zeros(1, dtype=float)
 
@@ -288,5 +289,3 @@ class Snow(object):
             self._year += 1
         else:                         # otherwise add one day to clock
             self._dayofyear += 1
-
-
