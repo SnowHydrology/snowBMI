@@ -1,7 +1,7 @@
 Access and format SNOTEL data
 ================
 Keith Jennings
-2023-04-14
+2024-03-25
 
 # Intro and dependencies
 
@@ -82,7 +82,7 @@ Now that we have the data we want, we’re all set to go, right? Not so
 fast.
 
 If we check the data we find there are 7 missing entries for `tair_c`
-and 5 for `ppt_mm`.
+and 0 for `ppt_mm`.
 
 `snowBMI` is but a simple model without any NA handling, so we want to
 give it serially complete data. We can do this by linearly interpolating
@@ -128,7 +128,60 @@ df %>% pivot_longer(!date, names_to = "var", values_to = "value") %>%
 
 Nailed it!
 
-Now, let’s try running `snowBMI` with these data.
+Now you can run `snowBMI` with these data.
+
+# What if I want another site?
+
+For the calibration exercise we’re going to run the model at two
+different sites, so we’ll download another site’s worth of data. This
+time, we’ll get data from Hogg Pass in Oregon. It has more of a maritime
+climate, compared to the continental climate of Niwot Ridge.
+
+``` r
+# Identify the site and download
+site_no = 526
+df <- snotel_download(site_id = site_no, internal = TRUE) %>% 
+  mutate(date = as.Date(date))
+```
+
+    ## Downloading site: hogg pass , with id: 526
+
+``` r
+# Then subset to the date sequence
+df <- df %>% 
+  filter(date %in% date_seq) 
+
+# Format columns
+df <- df %>% 
+  select(date, 
+         swe_mm = snow_water_equivalent,
+         tair_c = temperature_mean,
+         ppt_mm = precipitation)
+
+# Fill in missing data
+df <- df %>% 
+  mutate(tair_c = na.approx(tair_c),
+         ppt_mm = case_when(is.na(ppt_mm) ~ 0, TRUE ~ ppt_mm))
+
+# Export the data
+# Uncomment if you want to modify or save the data again
+# write.csv(x = df,
+#           file = paste0("../examples/data/snotel_", site_no, "_data.csv"),
+#           row.names = F,
+#           quote = F)
+```
+
+And we can plot the data again to take a look.
+
+``` r
+# plot code
+df %>% pivot_longer(!date, names_to = "var", values_to = "value") %>% 
+  ggplot(aes(date, value)) +
+  geom_line() + 
+  facet_wrap(~var, ncol = 1, scales = "free_y")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
 # References
 
