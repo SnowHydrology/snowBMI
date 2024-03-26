@@ -149,6 +149,11 @@ class Snow(object):
     def rs_thresh(self):
         """Rain-snow air temperature threshold when rs_method = 1."""
         return self._rs_thresh
+        
+    @rs_thresh.setter
+    def rs_thresh(self, rs_thresh):
+        """Set model rs_thresh."""
+        self._rs_thresh = rs_thresh
 
     @property
     def snow_thresh_max(self):
@@ -164,14 +169,31 @@ class Snow(object):
     def ddf_max(self):
         """Maximum annual degree day factor."""
         return self._ddf_max
+        
+    @ddf_max.setter
+    def ddf_max(self, ddf_max):
+        """Set model ddf_max."""
+        self._ddf_max = ddf_max
 
+    @property
     def ddf_min(self):
         """Minimum annual degree day factor."""
         return self._ddf_min
+        
+    @ddf_min.setter
+    def ddf_min(self, ddf_min):
+        """Set model ddf_min."""
+        self._ddf_min = ddf_min
 
+    @property
     def tair_melt_thresh(self):
         """Minimum annual degree day factor."""
         return self._tair_melt_thresh
+        
+    @tair_melt_thresh.setter
+    def tair_melt_thresh(self, tair_melt_thresh):
+        """Set model tair_melt_thresh."""
+        self._tair_melt_thresh = tair_melt_thresh
 
     @property
     def time(self):
