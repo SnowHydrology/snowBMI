@@ -5,7 +5,7 @@ import yaml
 
 
 def solve_snow(temp, precip, doy, swe, melt, rain_snow, rs_thresh, snow_thresh_max, rain_thresh_min,
-               ddf_max, ddf_min, tair_melt_thresh):
+               ddf_max, ddf_min, tair_melt_thresh, timestep):
     """Run the snow model for one time step to update the states and fluxes.
 
     Parameters
@@ -34,12 +34,13 @@ def solve_snow(temp, precip, doy, swe, melt, rain_snow, rs_thresh, snow_thresh_m
         Minimum annual degree day factor (parameter).
     tair_melt_thresh: float
         Air temperature threshold above which snowmelt can occur (parameter).
+    timestep: int
+        Model timestep in seconds (parameter).
 
     Returns
     -------
     TODO
     result : ndarray
-        The temperatures after time *time_step*.
 
     Examples
     --------
@@ -64,8 +65,8 @@ def solve_snow(temp, precip, doy, swe, melt, rain_snow, rs_thresh, snow_thresh_m
         raise RuntimeError("Invalid rain-snow partitioning method")
 
     # Compute snowfall and rainfall
-    snowfall_mm = (1 - ppt_phase) * precip
-    rainfall_mm = precip - snowfall_mm
+    snowfall_mm = (1 - ppt_phase) * precip * timestep/86400  # account for < nondaily timesteps
+    rainfall_mm = precip - snowfall_mm * timestep/86400  # account for < nondaily timesteps
 
     # Add new snowfall to swe
     np.add(swe, snowfall_mm, out=swe)
@@ -75,7 +76,7 @@ def solve_snow(temp, precip, doy, swe, melt, rain_snow, rs_thresh, snow_thresh_m
 
     # Compute potential melt
     if temp > tair_melt_thresh:
-        melt_pot_mm = (temp - tair_melt_thresh) * ddf
+        melt_pot_mm = (temp - tair_melt_thresh) * ddf * timestep/86400  # account for < nondaily timesteps
     else:
         melt_pot_mm = 0
 
@@ -302,6 +303,7 @@ class Snow(object):
             self._ddf_max,
             self._ddf_min,
             self._tair_melt_thresh,
+            self._time_step,
         )
 
         self._time += self._time_step
@@ -310,9 +312,9 @@ class Snow(object):
                 self._dayofyear = 1
                 self._year += 1
             else:                     # otherwise (ie, it's a leap year) add 1 day
-                self._dayofyear += 1
+                self._dayofyear += self._time_step/86400  # increment time
         elif self._dayofyear == 366:  # check if end of a leap year and increment to next year
             self._dayofyear = 1
             self._year += 1
         else:                         # otherwise add one day to clock
-            self._dayofyear += 1
+            self._dayofyear += self._time_step/86400  # increment time
