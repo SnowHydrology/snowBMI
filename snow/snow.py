@@ -103,7 +103,7 @@ class Snow(object):
 
     def __init__(
         self, rs_method=1, rs_thresh=2.5, snow_thresh_max=1.5, rain_thresh_min=4.5,
-            ddf_max=1, ddf_min=0, tair_melt_thresh=1, swe_init=0, dayofyear=274, year=2016,
+            ddf_max=1, ddf_min=0, tair_melt_thresh=1, swe_init=0, dayofyear=274, year=2016, timestep=3600,
     ):
         """Create a new heat model.
 
@@ -128,7 +128,7 @@ class Snow(object):
         self._tair_melt_thresh = tair_melt_thresh
 
         self._time = 0.0
-        self._time_step = 86400
+        self._time_step = timestep
         self._dayofyear = dayofyear
         self._year = year
 
@@ -204,6 +204,11 @@ class Snow(object):
     def time_step(self):
         """Model time step."""
         return self._time_step
+
+    @time_step.setter
+    def time_step(self, time_step):
+        """Set time_step."""
+        self._time_step[:] = time_step
 
     @property
     def dayofyear(self):
