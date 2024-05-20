@@ -90,6 +90,9 @@ def solve_snow(temp, precip, doy, swe, melt, rain_snow, rs_thresh, snow_thresh_m
     # Yes, rainfall != melt, but this simple model assumes all rain is a land surface water flux
     melt = np.add(melt, rainfall_mm, out=melt)
 
+    # Convert melt to daily flux to be consistent with var info
+    melt = np.multiply(melt, (86400/timestep), out=melt)
+
     return swe, melt
 
 
