@@ -65,8 +65,8 @@ def solve_snow(temp, precip, doy, swe, melt, rain_snow, rs_thresh, snow_thresh_m
         raise RuntimeError("Invalid rain-snow partitioning method")
 
     # Compute snowfall and rainfall
-    snowfall_mm = (1 - ppt_phase) * precip * timestep/86400  # account for < nondaily timesteps
-    rainfall_mm = precip - snowfall_mm * timestep/86400  # account for < nondaily timesteps
+    snowfall_mm = (1 - ppt_phase) * (precip * timestep/86400)  # account for < nondaily timesteps
+    rainfall_mm = (precip * timestep/86400) - snowfall_mm  # account for < nondaily timesteps
 
     # Add new snowfall to swe
     np.add(swe, snowfall_mm, out=swe)
